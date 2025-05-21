@@ -4,18 +4,11 @@ const imagePreview = document.getElementById('imagePreview');
 const analyzeImageButton = document.getElementById('analyzeImage');
 const painLevel = document.getElementById('pain-level');
 const confidence = document.getElementById('confidence');
+const liveCameraButton = document.getElementById('liveCameraButton');
+const previewContainer = document.getElementById('preview-container');
 
-// Initialize speech synthesis
-const speechSynthesis = window.speechSynthesis;
-
-// Function to speak the pain level
-function speakPainLevel(painClass, painLevel) {
-    const text = `This person has ${painClass} level of pain, with a pain score of ${painLevel} percent`;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9; // Slightly slower speech rate
-    utterance.pitch = 1;
-    speechSynthesis.speak(utterance);
-}
+let videoStream = null;
+let isCameraActive = false;
 
 // Image Upload Handling
 imageUpload.addEventListener('change', function(e) {
@@ -23,6 +16,10 @@ imageUpload.addEventListener('change', function(e) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
+            // Stop camera if active
+            if (isCameraActive) {
+                stopCamera();
+            }
             imagePreview.src = e.target.result;
             imagePreview.style.display = 'block';
             analyzeImageButton.disabled = false;
@@ -31,7 +28,81 @@ imageUpload.addEventListener('change', function(e) {
     }
 });
 
-// Analyze Uploaded Image
+// Live Camera Button Handling
+liveCameraButton.addEventListener('click', async function() {
+    if (!isCameraActive) {
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            isCameraActive = true;
+            
+            // Clear any existing preview
+            imagePreview.style.display = 'none';
+            
+            // Create and show video element
+            const videoElement = document.createElement('video');
+            videoElement.id = 'cameraPreview';
+            videoElement.srcObject = videoStream;
+            videoElement.autoplay = true;
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
+            videoElement.style.objectFit = 'cover';
+            
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(videoElement);
+            
+            liveCameraButton.innerHTML = '<i class="fas fa-camera"></i> Capture Image';
+            analyzeImageButton.disabled = true;
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            showError('Could not access camera');
+        }
+    } else {
+        captureImage();
+    }
+});
+
+function captureImage() {
+    const videoElement = document.getElementById('cameraPreview');
+    if (!videoElement) return;
+
+    // Create canvas and capture image
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    canvas.getContext('2d').drawImage(videoElement, 0, 0);
+    
+    // Convert canvas to image
+    const capturedImage = canvas.toDataURL('image/png');
+    
+    // Clear the preview container
+    previewContainer.innerHTML = '';
+    
+    // Create and display the captured image
+    imagePreview.src = capturedImage;
+    imagePreview.style.display = 'block';
+    previewContainer.appendChild(imagePreview);
+    
+    // Clean up camera
+    stopCamera();
+    
+    // Enable analyze button
+    analyzeImageButton.disabled = false;
+}
+
+function stopCamera() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+    isCameraActive = false;
+    const videoElement = document.getElementById('cameraPreview');
+    if (videoElement) {
+        videoElement.remove();
+    }
+    liveCameraButton.innerHTML = '<i class="fas fa-camera"></i> Live Camera';
+}
+
+// Analyze Image
 analyzeImageButton.addEventListener('click', async function() {
     if (!imagePreview.src) return;
 
@@ -50,8 +121,7 @@ analyzeImageButton.addEventListener('click', async function() {
         if (response.ok) {
             const data = await response.json();
             updateResults(data);
-            // Speak the pain level
-            speakPainLevel(data.pain_class, data.pain_level);
+            // Voice output is now handled by the backend using pyttsx3
         } else {
             const errorData = await response.json();
             showError(errorData.error || 'Error analyzing image');
@@ -96,7 +166,6 @@ function showError(message) {
     errorDiv.textContent = message;
     document.body.appendChild(errorDiv);
     
-    // Remove error message after 3 seconds
     setTimeout(() => {
         errorDiv.remove();
     }, 3000);
@@ -114,4 +183,24 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             });
         }
     });
-}); 
+});
+
+// Add event listeners for Services and Contact links
+document.querySelector('a[href="#services"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    const servicesSection = document.querySelector('#services');
+    if (servicesSection) {
+        servicesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+document.querySelector('a[href="#contact"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    const contactSection = document.querySelector('#contact');
+    if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+// Clean up camera when leaving page
+window.addEventListener('beforeunload', stopCamera); 

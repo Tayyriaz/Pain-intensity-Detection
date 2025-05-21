@@ -247,6 +247,12 @@ body {
     display: none;
 }
 
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
 .upload-button {
     background-color: #3498db;
     color: white;
@@ -259,12 +265,17 @@ body {
     font-size: 1.1rem;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+    border: none;
 }
 
 .upload-button:hover {
     background-color: #2980b9;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+}
+
+.upload-button i {
+    font-size: 1.2rem;
 }
 
 .preview-container {
@@ -279,13 +290,23 @@ body {
     justify-content: center;
     overflow: hidden;
     background-color: #f8f9fa;
+    position: relative;
+}
+
+#cameraPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 #imagePreview {
     max-width: 100%;
     max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
     display: none;
+    border-radius: 6px;
 }
 
 .analyze-button {
@@ -478,35 +499,50 @@ body {
 }
 
 /* About Section */
-.about-section {
-    padding: 5rem 0;
-    background-color: #f8f9fa;
+.about-section, .services-section {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.about-section h2, .services-section h2 {
+    color: #333;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .feature-card {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 10px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
+    flex: 1 1 200px;
 }
 
 .feature-card i {
-    font-size: 2.5rem;
+    font-size: 2em;
     color: #3498db;
-    margin-bottom: 1rem;
+    margin-bottom: 10px;
+}
+
+.feature-card h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    color: #666;
 }
 
 /* Footer */
@@ -584,4 +620,67 @@ footer {
     margin-top: 2rem;
     padding-top: 2rem;
     border-top: 1px solid #eee;
+}
+
+.services-section {
+    padding: 80px 0;
+    background-color: #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    margin: 30px 0;
+    text-align: center;
+}
+
+.services-section h2 {
+    color: #2c3e50;
+    font-size: 3em;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.services-section p {
+    font-size: 1.2em;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto 40px;
+}
+
+.services-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.service-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    flex: 1 1 250px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.service-card i {
+    font-size: 2.5em;
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.service-card h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.service-card p {
+    color: #666;
+    font-size: 1em;
 } 

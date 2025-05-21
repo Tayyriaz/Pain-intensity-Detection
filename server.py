@@ -8,6 +8,10 @@ import torchvision.models as models
 import base64
 import io
 import pyttsx3
+import cv2
+import numpy as np
+import time
+from threading import Thread
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 
@@ -56,6 +60,10 @@ def speak_pain_level(pain_class, pain_level):
     engine.say(text)
     engine.runAndWait()
 
+def speak_after_delay(pain_class, pain_level):
+    time.sleep(1)  # Wait for 1 second after results are shown
+    speak_pain_level(pain_class, pain_level)
+
 # Load model at startup
 model = load_model()
 
@@ -69,20 +77,20 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 @app.route('/analyze', methods=['POST'])
-def analyze():
+def analyze_image():
     try:
-        # Get image data from request
-        data = request.json
-        image_data = data['image'].split(',')[1]  # Remove data URL prefix
-        image_bytes = base64.b64decode(image_data)
+        # Get the image data from the request
+        data = request.get_json()
+        image_data = data['image'].split(',')[1]  # Remove the data URL prefix
         
-        # Convert to PIL Image
+        # Convert base64 to image
+        image_bytes = base64.b64decode(image_data)
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
-        # Preprocess image
+        # Preprocess image for the model
         input_tensor = preprocess_image(image)
         
-        # Get prediction
+        # Get prediction from model
         with torch.no_grad():
             output = model(input_tensor)
             pain_score = output.item()
@@ -94,21 +102,18 @@ def analyze():
         # Convert pain score to percentage
         pain_level_percentage = round(pain_score * 100 / 6)  # Assuming max PSPI is 6
         
-        # Speak the pain level
-        speak_pain_level(pain_class, pain_level_percentage)
+        # Start voice in a separate thread after a delay
+        Thread(target=speak_after_delay, args=(pain_class, pain_level_percentage)).start()
         
         return jsonify({
             'pain_level': pain_level_percentage,
-            'confidence': confidence,
-            'pain_class': pain_class
+            'pain_class': pain_class,
+            'confidence': confidence
         })
         
     except Exception as e:
         print(f"Error processing image: {str(e)}")
-        return jsonify({
-            'error': 'Error processing image',
-            'details': str(e)
-        }), 500
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001) 
