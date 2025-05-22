@@ -116,4 +116,15 @@ def analyze_image():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001) 
+    try:
+        # Try port 5001 first
+        app.run(debug=True, port=5001)
+    except OSError:
+        try:
+            # If 5001 is in use, try port 5002
+            print("Port 5001 is in use, trying port 5002...")
+            app.run(debug=True, port=5002)
+        except OSError:
+            # If both ports are in use, try a random available port
+            print("Both ports 5001 and 5002 are in use, trying a random available port...")
+            app.run(debug=True, port=0) 
